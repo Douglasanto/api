@@ -84,7 +84,7 @@ public class Usuario implements Serializable {
 	@JoinTable(name = "tb_usuario_beneficio", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_beneficio"))
 	private Set<Beneficio> bens = new HashSet<>();
 	
-	@ManyToMany(cascade = CascadeType.PERSIST)
+	@ManyToMany(cascade = { CascadeType.MERGE, CascadeType.PERSIST })
 	@JoinTable(name = "tb_usuario_endereco", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_endereco"))
 	private Set<Endereco> end = new HashSet<>();
 	
