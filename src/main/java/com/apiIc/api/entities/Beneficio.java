@@ -29,7 +29,7 @@ public class Beneficio implements Serializable{
 	
 	@JsonIgnore
 	@ManyToMany(mappedBy = "bens")
-	private Set<Usuario> user = new HashSet<>();
+	private Set<com.apiIc.api.entities.Usuario> user = new HashSet<>();
 	
 	public Beneficio() {}
 	
@@ -57,6 +57,11 @@ public class Beneficio implements Serializable{
 
 	public Set<Usuario> getUser() {
 		return user;
+	}
+
+	public void adicionarUsuario(Usuario usuario) {
+		this.user.add(usuario);
+		usuario.getBens().add(this);
 	}
 
 	@Override

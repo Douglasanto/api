@@ -18,10 +18,8 @@ import jakarta.persistence.Table;
 @Table(name = "tb_endereco")
 public class Endereco implements Serializable {
 	
-	/* Static para o objeto poder ser salvo */
 	private static final long serialVersionUID = 1L;
 
-	// definir todos os atributos
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -101,6 +99,11 @@ public class Endereco implements Serializable {
 		return user;
 	}
 
+	public void adicionarUsuario(Usuario usuario) {
+	    this.user.add(usuario);
+	    usuario.getEnd().add(this);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -125,7 +128,4 @@ public class Endereco implements Serializable {
 			return false;
 		return true;
 	}
-	
-	
-	
 }

@@ -24,14 +24,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.CascadeType;
 
 @Entity
 @Table(name = "tb_usuario")
 public class Usuario implements Serializable {
-	/* Static para o objeto poder ser salvo */
 	private static final long serialVersionUID = 1L;
 
-	// definir todos os atributos
+
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -76,27 +76,35 @@ public class Usuario implements Serializable {
 	@Enumerated(EnumType.STRING)
 	private Estado_civil estado_civil;
 
-	@ManyToMany
-	@JoinTable(name = "tb_usuario_deficiencia", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_deficiencia"))
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@JoinTable(name = "tb_usuario_deficiencia", 
+		joinColumns = @JoinColumn(name = "id_usuario"), 
+		inverseJoinColumns = @JoinColumn(name = "id_deficiencia"))
 	private Set<Deficiencia> defs = new HashSet<>();
 	
-	@ManyToMany
-	@JoinTable(name = "tb_usuario_beneficio", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_beneficio"))
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@JoinTable(name = "tb_usuario_beneficio", 
+		joinColumns = @JoinColumn(name = "id_usuario"), 
+		inverseJoinColumns = @JoinColumn(name = "id_beneficio"))
 	private Set<Beneficio> bens = new HashSet<>();
 	
-	@ManyToMany
-	@JoinTable(name = "tb_usuario_endereco", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_endereco"))
+	
+	
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@JoinTable(name = "tb_usuario_endereco", 
+        joinColumns = @JoinColumn(name = "id_usuario"), 
+        inverseJoinColumns = @JoinColumn(name = "id_endereco"))
 	private Set<Endereco> end = new HashSet<>();
 	
-	@ManyToMany
-	@JoinTable(name = "tb_usuario_profissao", joinColumns = @JoinColumn(name = "id_usuario"), inverseJoinColumns = @JoinColumn(name = "id_profissao"))
+	@ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@JoinTable(name = "tb_usuario_profissao", 
+		joinColumns = @JoinColumn(name = "id_usuario"), 
+		inverseJoinColumns = @JoinColumn(name = "id_profissao"))
 	private Set<Profissao> profs = new HashSet<>();
 
-	// construtor vazio
 	public Usuario() {
 	}
 
-	// construtor com todos os atributos
 	public Usuario(Long id_usuario, String nome, String nome_social, String cpf, LocalDate data_nascimento, String email,String senha,
 			long telefone, long telefone_contato, Double latitude, Double longitude, String plusCode,
 			Cor cor, Escolaridade escolaridade, Renda_mensal renda_mensal, Sexo sexo,Estado_civil estado_civil, Tipo_Moradia tipo_moradia) {
@@ -121,6 +129,10 @@ public class Usuario implements Serializable {
 		this.tipo_moradia = tipo_moradia;
 	}
 
+	public void adicionarEndereco(Endereco endereco) {
+        this.end.add(endereco);
+        endereco.getUser().add(this);
+    }
 	
 
 	public Long getId_usuario() {

@@ -60,6 +60,11 @@ public class Profissao implements Serializable{
 		return user;
 	}
 
+	public void adicionarUsuario(Usuario usuario) {
+		this.user.add(usuario);
+		usuario.getProfs().add(this);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
