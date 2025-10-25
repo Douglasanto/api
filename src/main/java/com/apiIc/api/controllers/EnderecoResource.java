@@ -1,9 +1,8 @@
-package com.apiIc.api.resource;
+package com.apiIc.api.controllers;
 
 import java.net.URI;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,34 +13,33 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import com.apiIc.api.entities.Endereco;
+import com.apiIc.api.services.EnderecoService;
 
-import com.apiIc.api.entities.Profissao;
-import com.apiIc.api.services.ProfissaoService;
 
 @RestController
-@RequestMapping(value = "/profissao")
-public class ProfissaoResource {
-
-	@Autowired
-	private ProfissaoService service;
+@RequestMapping(value = "/endereco")
+public class EnderecoResource {
+	
+	private EnderecoService service;
 	
 	@GetMapping
-	public ResponseEntity<List<Profissao>> findAll() {
+	public ResponseEntity<List<Endereco>> findAll() {
 
-		List<Profissao> list = service.findAll();
+		List<Endereco> list = service.findAll();
 		return ResponseEntity.ok().body(list);
 	}
 	
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<Profissao> findById(@PathVariable Long id){
-	Profissao obj = service.findByiD(id);
+	public ResponseEntity<Endereco> findById(@PathVariable Long id){
+	Endereco obj = service.findByiD(id);
 	return ResponseEntity.ok().body(obj);
 	}
 	
 	@PostMapping
-	public ResponseEntity<Profissao> insert(@RequestBody Profissao obj){
+	public ResponseEntity<Endereco> insert(@RequestBody Endereco obj){
 		obj = service.insert(obj);
-		 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId_profissao()).toUri();
+		 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId_endereco()).toUri();
 		 return ResponseEntity.created(uri).body(obj);
 	}
 	
@@ -52,9 +50,10 @@ public class ProfissaoResource {
 	}
 	
 	@PutMapping(value = "/{id}")
-	public ResponseEntity<Profissao> update(@PathVariable Long id, @RequestBody Profissao obj) {
+	public ResponseEntity<Endereco> update(@PathVariable Long id, @RequestBody Endereco obj) {
 		
 		obj = service.update(id, obj);
 		return ResponseEntity.ok().body(obj);
 	}
+
 }

@@ -1,4 +1,4 @@
-package com.apiIc.api.resource;
+package com.apiIc.api.controllers;
 
 import java.net.URI;
 import java.util.List;
@@ -17,9 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.apiIc.api.dto.ApiResponse;
 import com.apiIc.api.dto.LocalizacaoDTO;
+import com.apiIc.api.dto.UsuarioDTO;
+import com.apiIc.api.dto.UserResponse;
 import com.apiIc.api.entities.Usuario;
 import com.apiIc.api.services.UsuarioService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping(value = "/usuarios")
@@ -48,14 +53,22 @@ public class UsuarioResource {
 
 	
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<Usuario> findById(@PathVariable Long id){
-	Usuario obj = service.findByiD(id);
-	return ResponseEntity.ok().body(obj);
-	}
+	public ResponseEntity<ApiResponse<UserResponse>> findById(@PathVariable Long id){
+        Usuario obj = service.findByiD(id);
+        UserResponse r = new UserResponse(
+            obj.getId_usuario(),
+            obj.getEmail(),
+            obj.getNome(),
+            null, // token não é retornado aqui
+            obj.getLatitude(),
+            obj.getLongitude()
+        );
+        return ResponseEntity.ok().body(ApiResponse.success(r));
+    }
 	
 	@PostMapping
-	public ResponseEntity<Usuario> insert(@RequestBody Usuario obj){
-		 obj = service.insert(obj);
+	public ResponseEntity<Usuario> insert(@Valid @RequestBody UsuarioDTO objDTO){
+		 Usuario obj = service.insert(objDTO);
 		 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId_usuario()).toUri();
 		 return ResponseEntity.created(uri).body(obj);
 	}
@@ -67,9 +80,9 @@ public class UsuarioResource {
 	}
 	
 	@PutMapping(value = "/{id}")
-	public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody Usuario obj) {
+	public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody UsuarioDTO objDTO) {
 		
-		obj = service.update(id, obj);
+		Usuario obj = service.update(id, objDTO);
 		return ResponseEntity.ok().body(obj);
 	}
 	

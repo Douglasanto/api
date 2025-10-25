@@ -4,6 +4,7 @@ public enum Cor {
 
 	negro,
 	branco,
-	pardo;
+	pardo,
+	amarelo;
 
 }

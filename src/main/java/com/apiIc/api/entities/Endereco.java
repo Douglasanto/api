@@ -32,6 +32,9 @@ public class Endereco implements Serializable {
 	private String cidade;
 	private String estado;
 	private String cep;
+	private String numero;
+	private Double latitude;
+	private Double longitude;
 	
 	@JsonIgnore
 	@ManyToMany(mappedBy = "end")
@@ -40,6 +43,7 @@ public class Endereco implements Serializable {
 	public Endereco() {
 	}
 	
+	// Construtor de compatibilidade (sem numero) utilizado em testes e seeds
 	public Endereco(Long id_endereco, String logradouro, String bairro, String cidade, String estado, String cep) {
 		super();
 		this.id_endereco = id_endereco;
@@ -48,6 +52,17 @@ public class Endereco implements Serializable {
 		this.cidade = cidade;
 		this.estado = estado;
 		this.cep = cep;
+	}
+	
+	public Endereco(Long id_endereco, String logradouro, String bairro, String cidade, String estado, String cep, String numero) {
+		super();
+		this.id_endereco = id_endereco;
+		this.logradouro = logradouro;
+		this.bairro = bairro;
+		this.cidade = cidade;
+		this.estado = estado;
+		this.cep = cep;
+		this.numero = numero;
 	}
 	
 	public Long getId_endereco() {
@@ -86,7 +101,29 @@ public class Endereco implements Serializable {
 	public void setCep(String cep) {
 		this.cep = cep;
 	}
+	public String getNumero() {
+		return numero;
+	}
+	public void setNumero(String numero) {
+		this.numero = numero;
+	}
 	
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
+	}
+
 	public String getTipo_endereco() {
 		return tipo_endereco;
 	}

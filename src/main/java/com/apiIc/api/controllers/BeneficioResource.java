@@ -1,4 +1,4 @@
-package com.apiIc.api.resource;
+package com.apiIc.api.controllers;
 
 import java.net.URI;
 import java.util.List;

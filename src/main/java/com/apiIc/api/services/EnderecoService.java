@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.apiIc.api.Repositories.EnderecoRepository;
 import com.apiIc.api.entities.Endereco;
+import com.apiIc.api.dto.LocalizacaoDTO;
 
 @Service
 public class EnderecoService {
@@ -13,6 +14,9 @@ public class EnderecoService {
 	
 	@Autowired
 	private EnderecoRepository repository;
+
+    @Autowired
+    private GoogleMapsService googleMapsService;
 	
 	public List<Endereco> findAll(){
 		return repository.findAll();			
@@ -24,8 +28,18 @@ public class EnderecoService {
 	}
 	
 	public Endereco insert(Endereco obj) {
-		return repository.save(obj);
-	}
+        String enderecoCompleto = String.format("%s, %s, %s - %s, %s",
+                safe(obj.getLogradouro()), safe(obj.getNumero()), safe(obj.getCidade()), safe(obj.getEstado()), safe(obj.getCep()));
+        try {
+            LocalizacaoDTO loc = googleMapsService.getCoordinatesFromAddress(enderecoCompleto);
+            obj.setLatitude(loc.getLatitude());
+            obj.setLongitude(loc.getLongitude());
+        } catch (Exception e) {
+            obj.setLatitude(null);
+            obj.setLongitude(null);
+        }
+        return repository.save(obj);
+    }
 	
 	public void delete(Long id) {
 		repository.deleteById(id);
@@ -42,4 +56,6 @@ public class EnderecoService {
 		entity.setCidade(obj.getCidade());
 		
 	}
+
+    private String safe(String s) { return s == null ? "" : s.trim(); }
 }

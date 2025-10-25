@@ -1,10 +1,11 @@
 package com.apiIc.api.entities;
 
-import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.apiIc.api.entities.enums.Cor;
 import com.apiIc.api.entities.enums.Escolaridade;
@@ -13,10 +14,15 @@ import com.apiIc.api.entities.enums.Renda_mensal;
 import com.apiIc.api.entities.enums.Sexo;
 import com.apiIc.api.entities.enums.Tipo_Moradia;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,8 +34,16 @@ import jakarta.persistence.CascadeType;
 
 @Entity
 @Table(name = "tb_usuario")
-public class Usuario implements Serializable {
+public class Usuario implements UserDetails {
 	private static final long serialVersionUID = 1L;
+	
+	@ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "usuario_perfis",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "perfil_id")
+    )
+    private Set<Perfil> perfis = new HashSet<>();
 
 
 
@@ -46,18 +60,65 @@ public class Usuario implements Serializable {
 	private String nome_social;
 	private LocalDate data_nascimento;
 	private String senha;
+	
+	// Métodos da interface UserDetails
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return perfis.stream()
+            .map(perfil -> new SimpleGrantedAuthority(perfil.getNome().name()))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getPassword() {
+        return this.senha;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
+    
+    public Set<Perfil> getPerfis() {
+        return perfis;
+    }
+    
+    public void addPerfil(Perfil perfil) {
+        this.perfis.add(perfil);
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+	@Column(unique = true)
 	private String email;
 	private long telefone;
 	private long telefone_contato;
-	private double latitude;
-	private double longitude;
+	private Double latitude;
+	private Double longitude;
 	private String plusCode;
 
 	
 	
 	// enums
 	
-	@Column(columnDefinition = "ENUM('negro', 'branco', 'pardo')")
+	@Column(columnDefinition = "ENUM('negro', 'branco', 'pardo', 'amarelo')")
 	@Enumerated(EnumType.STRING)
 	private Cor cor;
 	@Column(columnDefinition = "ENUM('ensino_Medio_Completo', 'ensino_Medio_Imcompleto', 'ensino_Superior_Completo', 'ensino_Superior_Imcompleto')")
