@@ -46,7 +46,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-    .requestMatchers("/auth/**", "/usuarios/**", "/locais-proximos", "/geolocalizacao").permitAll()
+    .requestMatchers("/api/auth/**", "/usuarios/**", "/locais-proximos", "/geolocalizacao").permitAll()
     .anyRequest().authenticated()
 );
 

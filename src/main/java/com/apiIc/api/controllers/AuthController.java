@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
@@ -75,7 +75,7 @@ public class AuthController {
         }
     }
     
-    @PostMapping("/register")
+    @PostMapping("/registro")
     public ResponseEntity<?> register(@RequestBody UsuarioDTO usuarioDTO) {
         try {
             // Verifica se o email já está em uso
