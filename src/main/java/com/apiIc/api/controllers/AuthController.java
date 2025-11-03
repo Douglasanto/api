@@ -34,7 +34,8 @@ public class AuthController {
     private UsuarioService usuarioService;
 
     public AuthController() {
-        log.info("AuthController inicializado!");  // Adicione este log
+        log.info("AuthController inicializado!");
+        log.info("Endpoints disponíveis: POST /api/auth/login, POST /api/auth/registro, POST /api/auth/register-full");
     }
 
     @PostMapping("/login")
