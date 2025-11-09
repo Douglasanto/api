@@ -1,5 +1,10 @@
 [build]
 packages = ["java@17", "maven@3.9.11"]
 
+command = "./mvnw -DskipTests clean package -Pproduction"
+
+[env]
+JAVA_HOME = "/usr/lib/jvm/java-17"
+
 [deploy]
 start = "java -Dserver.port=$PORT -jar target/*.jar"
