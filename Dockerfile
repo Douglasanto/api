@@ -1,5 +1,9 @@
 FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
+
+# Instalar Maven
+RUN apk add --no-cache maven
+
 COPY . .
 RUN mvn clean package -DskipTests -B -Pproduction
 
