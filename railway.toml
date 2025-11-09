@@ -1,9 +1,0 @@
-[build]
-packages = ["java@17", "maven@3.9.11"]
-
-command = "mvn -B -DskipTests clean package"
-
-[env]
-
-[deploy]
-start = "java -Dserver.port=$PORT -jar target/api-0.0.1-SNAPSHOT.jar"

@@ -1,0 +1,11 @@
+[phases.setup]
+# Instala o JDK 17 e o Maven na imagem de build
+nixPkgs = ["jdk17", "maven"]
+
+[phases.build]
+# Executa o build com Maven, pulando testes para agilizar o deploy
+cmds = ["mvn -B -DskipTests clean package"]
+
+[start]
+# Sobe a aplicação Spring Boot na porta do Railway
+cmd = "java -Dserver.port=$PORT -jar target/*.jar"
