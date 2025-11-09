@@ -1,3 +1,5 @@
 [build]
-builder = "railpack/java"
 packages = ["java@17", "maven@3.9.11"]
+
+[deploy]
+start = "java -Dserver.port=$PORT -jar target/*.jar"
