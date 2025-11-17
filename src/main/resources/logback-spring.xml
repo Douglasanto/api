@@ -18,7 +18,7 @@
     </appender>
 
     <!-- Railway/Prod: use async appender; effective levels will be tightened via application-railway.properties -->
-    <springProfile name="railway,prod">
+    <springProfile name="railway,railway-pg,prod">
         <root level="WARN">
             <appender-ref ref="ASYNC_STDOUT"/>
         </root>
