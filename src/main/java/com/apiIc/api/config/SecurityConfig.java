@@ -38,8 +38,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        log.info("Configurando SecurityFilterChain...");
-        log.info("Permitindo acesso a /api/auth/**");
+        log.debug("Configurando SecurityFilterChain...");
+        log.debug("Permitindo acesso a /api/auth/**");
         
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -51,7 +51,7 @@ public class SecurityConfig {
 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        log.info("SecurityFilterChain configurado com sucesso!");
+        log.debug("SecurityFilterChain configurado com sucesso!");
         return http.build();
     }
 

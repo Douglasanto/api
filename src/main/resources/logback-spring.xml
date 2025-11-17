@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="api"/>
+
+    <!-- Minimal, single-line console pattern -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSX} %-5level [%thread] %logger{36} - %replace(%msg){'\r?\n',' '} %ex{short}%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Async wrapper for production -->
+    <appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>512</queueSize>
+        <neverBlock>true</neverBlock>
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
+    <!-- Railway/Prod: use async appender; effective levels will be tightened via application-railway.properties -->
+    <springProfile name="railway,prod">
+        <root level="WARN">
+            <appender-ref ref="ASYNC_STDOUT"/>
+        </root>
+    </springProfile>
+
+    <!-- Dev/Default: direct console appender -->
+    <springProfile name="default,dev">
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+</configuration>

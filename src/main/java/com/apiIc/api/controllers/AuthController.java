@@ -33,11 +33,6 @@ public class AuthController {
     @Autowired
     private UsuarioService usuarioService;
 
-    public AuthController() {
-        log.info("AuthController inicializado!");
-        log.info("Endpoints disponíveis: POST /api/auth/login, POST /api/auth/registro, POST /api/auth/register-full");
-    }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
@@ -56,6 +51,8 @@ public class AuthController {
             // Gera o token JWT
             String token = jwtUtil.generateToken(user.getEmail());
 
+            log.info("Auth login success email={}", user.getEmail());
+
             return ResponseEntity.ok(new LoginResponse(
                     true,
                     "Login bem-sucedido",
@@ -71,6 +68,7 @@ public class AuthController {
             ));
 
         } catch (AuthenticationException e) {
+            log.warn("Auth login failed email={}", loginRequest.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new LoginResponse(false, null, "Email ou senha inválidos", null));
         }
@@ -81,6 +79,7 @@ public class AuthController {
         try {
             // Verifica se o email já está em uso
             if (usuarioService.existsByEmail(usuarioDTO.getEmail())) {
+                log.warn("Registration attempt with existing email={}", usuarioDTO.getEmail());
                 return ResponseEntity
                     .badRequest()
                     .body(new LoginResponse(false, null, "Email já está em uso", null));
@@ -100,6 +99,7 @@ public class AuthController {
             
             // Gera o token JWT
             String token = jwtUtil.generateToken(user.getEmail());
+            log.info("Registration success email={}", user.getEmail());
             
             return ResponseEntity.ok(new LoginResponse(
                 true,
@@ -116,6 +116,7 @@ public class AuthController {
             ));
             
         } catch (Exception e) {
+            log.warn("Registration failed email={} reason={}", usuarioDTO.getEmail(), e.getClass().getSimpleName());
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new LoginResponse(false, null, "Erro ao registrar usuário: " + e.getMessage(), null));
@@ -126,6 +127,7 @@ public class AuthController {
     public ResponseEntity<?> registerFull(@RequestBody UsuarioFullDTO usuarioDTO) {
         try {
             if (usuarioService.existsByEmail(usuarioDTO.getEmail())) {
+                log.warn("Registration attempt with existing email={}", usuarioDTO.getEmail());
                 return ResponseEntity
                     .badRequest()
                     .body(new LoginResponse(false, null, "Email já está em uso", null));
@@ -142,6 +144,7 @@ public class AuthController {
             var user = (Usuario) auth.getPrincipal();
 
             String token = jwtUtil.generateToken(user.getEmail());
+            log.info("Registration success email={}", user.getEmail());
 
             return ResponseEntity.ok(new LoginResponse(
                 true,
@@ -157,6 +160,7 @@ public class AuthController {
                 )
             ));
         } catch (Exception e) {
+            log.warn("Registration failed email={} reason={}", usuarioDTO.getEmail(), e.getClass().getSimpleName());
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new LoginResponse(false, null, "Erro ao registrar usuário: " + e.getMessage(), null));
