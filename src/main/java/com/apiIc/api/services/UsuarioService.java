@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.apiIc.api.Repositories.UsuarioRepository;
 import com.apiIc.api.Repositories.PerfilRepository;
@@ -61,7 +63,7 @@ public class UsuarioService implements UserDetailsService {
     private final DeficienciaRepository deficienciaRepository;
     private final BeneficioRepository beneficioRepository;
     private final ProfissaoRepository profissaoRepository;
-    private final GoogleMapsService googleMapsService;
+    private final EnderecoService enderecoService;
     
     public List<Usuario> findAll(){
         return repository.findAll();
@@ -160,8 +162,6 @@ public class UsuarioService implements UserDetailsService {
         obj.setEmail(dto.getEmail());
         obj.setTelefone(dto.getTelefone() != null ? dto.getTelefone() : 0L);
         obj.setTelefone_contato(dto.getTelefone_contato() != null ? dto.getTelefone_contato() : 0L);
-        obj.setLatitude(dto.getLatitude());
-        obj.setLongitude(dto.getLongitude());
         obj.setPlusCode(dto.getPlusCode());
 
         // Parse data de nascimento dd/MM/yyyy
@@ -219,39 +219,44 @@ public class UsuarioService implements UserDetailsService {
         savedUsuario = repository.save(savedUsuario);
 
         // Endereços embutidos (usa id existente ou cria novo)
+        boolean userCoordsSet = false;
+        int idx = 0;
         if (dto.getEnderecos() != null) {
             for (EnderecoDTO e : dto.getEnderecos()) {
+                boolean isPrincipal = "principal".equalsIgnoreCase(safe(e.getTipo_endereco()));
                 Endereco end;
                 if (e.getId_endereco() != null) {
                     end = enderecoRepository.findById(e.getId_endereco())
                         .orElseThrow(() -> new ResourceNotFoundException(e.getId_endereco()));
-                } else {
-                    end = new Endereco();
-                    end.setTipo_endereco(e.getTipo_endereco());
-                    end.setLogradouro(e.getLogradouro());
-                    end.setBairro(e.getBairro());
-                    end.setCidade(e.getCidade());
-                    end.setEstado(e.getEstado());
-                    end.setCep(e.getCep());
-                    end.setNumero(e.getNumero());
-
-                    // Geocodifica o endereço antes de salvar
-                    String enderecoCompleto = String.format("%s, %s, %s - %s, %s",
-                            safe(e.getLogradouro()), safe(e.getNumero() != null ? e.getNumero() : ""),
-                            safe(e.getCidade()), safe(e.getEstado()), safe(e.getCep()));
-                    try {
-                        var loc = googleMapsService.getCoordinatesFromAddress(enderecoCompleto);
-                        end.setLatitude(loc.getLatitude());
-                        end.setLongitude(loc.getLongitude());
-                    } catch (Exception ex) {
-                        // Regra: em falha, mantém null para lat/long e segue, ou lance exceção conforme regra de negócio
-                        end.setLatitude(null);
-                        end.setLongitude(null);
+                    // garantir lat/lng para endereços existentes? opcional: re-geocodificar se null
+                    if (end.getLatitude() == null || end.getLongitude() == null) {
+                        enderecoService.geocodeAndFill(end);
                     }
+                } else {
+                    end = enderecoService.geocodeAndBuildFromDTO(e);
                 }
+
+                // Define coordenadas do usuário a partir do endereço principal (ou primeiro como fallback)
+                if (!userCoordsSet && (isPrincipal || idx == 0)) {
+                    if (end.getLatitude() == null || end.getLongitude() == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                            "Não foi possível obter coordenadas para o usuário a partir do endereço informado");
+                    }
+                    savedUsuario.setLatitude(end.getLatitude());
+                    savedUsuario.setLongitude(end.getLongitude());
+                    userCoordsSet = true;
+                }
+
                 // relacionamento bidirecional via helper
                 savedUsuario.adicionarEndereco(end);
+                idx++;
             }
+        }
+
+        // Garante que as coordenadas do usuário foram definidas a partir do Google
+        if (!userCoordsSet) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                "Endereço principal ausente ou inválido para geocodificação do usuário");
         }
 
         // Associações: Deficiências (IDs), Benefícios (objetos), Profissões (objetos)

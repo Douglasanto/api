@@ -25,6 +25,8 @@ import com.apiIc.api.entities.Usuario;
 import com.apiIc.api.services.UsuarioService;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping(value = "/usuarios")
@@ -33,6 +35,8 @@ public class UsuarioResource {
 
 	@Autowired
 	private UsuarioService service;
+
+    private static final Logger log = LoggerFactory.getLogger(UsuarioResource.class);
 	
 	@GetMapping
 	public ResponseEntity<List<Usuario>> findAll() {
@@ -41,15 +45,17 @@ public class UsuarioResource {
 		return ResponseEntity.ok().body(list);
 	}
 	
-	 @GetMapping(value = "/api/localizacoes")
-	    public ResponseEntity<List<LocalizacaoDTO>> obterLocalizacoes() {
-	        List<Usuario> usuarios = service.findAll();
-	        List<LocalizacaoDTO> localizacoes = usuarios.stream()
-	                .map(usuario -> new LocalizacaoDTO(usuario.getLatitude(), usuario.getLongitude()))
-	                .collect(Collectors.toList());
+	     @Deprecated
+     @GetMapping(value = "/api/localizacoes")
+    public ResponseEntity<List<LocalizacaoDTO>> obterLocalizacoes() {
+        log.warn("[DEPRECATED] Rota /usuarios/api/localizacoes será movida. Utilize /usuarios/localizacoes em GeolocationController.");
+        List<Usuario> usuarios = service.findAll();
+        List<LocalizacaoDTO> localizacoes = usuarios.stream()
+                .map(usuario -> new LocalizacaoDTO(usuario.getLatitude(), usuario.getLongitude()))
+                .collect(Collectors.toList());
 
-	        return ResponseEntity.ok().body(localizacoes);
-	    }
+        return ResponseEntity.ok().body(localizacoes);
+    }
 
 	
 	@GetMapping(value = "/{id}")
@@ -66,8 +72,10 @@ public class UsuarioResource {
         return ResponseEntity.ok().body(ApiResponse.success(r));
     }
 	
-	@PostMapping
-	public ResponseEntity<Usuario> insert(@Valid @RequestBody UsuarioDTO objDTO){
+	    @Deprecated
+    @PostMapping
+    public ResponseEntity<Usuario> insert(@Valid @RequestBody UsuarioDTO objDTO){
+         log.warn("[DEPRECATED] Endpoint POST /usuarios será descontinuado. Utilize POST /api/auth/registro.");
 		 Usuario obj = service.insert(objDTO);
 		 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId_usuario()).toUri();
 		 return ResponseEntity.created(uri).body(obj);

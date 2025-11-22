@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.apiIc.api.Repositories.EnderecoRepository;
 import com.apiIc.api.entities.Endereco;
 import com.apiIc.api.dto.LocalizacaoDTO;
+import com.apiIc.api.dto.EnderecoDTO;
 
 @Service
 public class EnderecoService {
@@ -28,16 +29,7 @@ public class EnderecoService {
 	}
 	
 	public Endereco insert(Endereco obj) {
-        String enderecoCompleto = String.format("%s, %s, %s - %s, %s",
-                safe(obj.getLogradouro()), safe(obj.getNumero()), safe(obj.getCidade()), safe(obj.getEstado()), safe(obj.getCep()));
-        try {
-            LocalizacaoDTO loc = googleMapsService.getCoordinatesFromAddress(enderecoCompleto);
-            obj.setLatitude(loc.getLatitude());
-            obj.setLongitude(loc.getLongitude());
-        } catch (Exception e) {
-            obj.setLatitude(null);
-            obj.setLongitude(null);
-        }
+        geocodeAndFill(obj);
         return repository.save(obj);
     }
 	
@@ -58,4 +50,53 @@ public class EnderecoService {
 	}
 
     private String safe(String s) { return s == null ? "" : s.trim(); }
+
+    // Centralização de geocodificação
+    public void geocodeAndFill(Endereco end) {
+        String enderecoCompleto = String.format("%s, %s, %s - %s, %s",
+                safe(end.getLogradouro()), safe(end.getNumero()), safe(end.getCidade()), safe(end.getEstado()), safe(end.getCep()));
+        try {
+            LocalizacaoDTO loc = googleMapsService.getCoordinatesFromAddress(enderecoCompleto);
+            end.setLatitude(loc.getLatitude());
+            end.setLongitude(loc.getLongitude());
+        } catch (Exception e) {
+            end.setLatitude(null);
+            end.setLongitude(null);
+        }
+    }
+
+    public Endereco geocodeAndBuildFromDTO(EnderecoDTO e) {
+        Endereco end = new Endereco();
+        end.setTipo_endereco(e.getTipo_endereco());
+        end.setLogradouro(e.getLogradouro());
+        end.setBairro(e.getBairro());
+        end.setCidade(e.getCidade());
+        end.setEstado(e.getEstado());
+        end.setCep(e.getCep());
+        end.setNumero(e.getNumero());
+        geocodeAndFill(end);
+        return end;
+    }
+
+    // Versões strict: não engolem exceções, deixam propagar para o chamador decidir (400 x 502)
+    public void geocodeAndFillStrict(Endereco end) {
+        String enderecoCompleto = String.format("%s, %s, %s - %s, %s",
+                safe(end.getLogradouro()), safe(end.getNumero()), safe(end.getCidade()), safe(end.getEstado()), safe(end.getCep()));
+        LocalizacaoDTO loc = googleMapsService.getCoordinatesFromAddress(enderecoCompleto);
+        end.setLatitude(loc.getLatitude());
+        end.setLongitude(loc.getLongitude());
+    }
+
+    public Endereco geocodeAndBuildFromDTOStrict(EnderecoDTO e) {
+        Endereco end = new Endereco();
+        end.setTipo_endereco(e.getTipo_endereco());
+        end.setLogradouro(e.getLogradouro());
+        end.setBairro(e.getBairro());
+        end.setCidade(e.getCidade());
+        end.setEstado(e.getEstado());
+        end.setCep(e.getCep());
+        end.setNumero(e.getNumero());
+        geocodeAndFillStrict(end);
+        return end;
+    }
 }

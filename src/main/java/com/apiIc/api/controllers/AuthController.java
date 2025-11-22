@@ -1,6 +1,10 @@
 package com.apiIc.api.controllers;
 
 import com.apiIc.api.entities.Usuario;
+import com.apiIc.api.entities.Endereco;
+import com.apiIc.api.dto.EnderecoDTO;
+import com.apiIc.api.dto.RegisterFullResponse;
+import com.apiIc.api.dto.ApiResponse;
 import com.apiIc.api.services.UsuarioService;
 import com.apiIc.api.util.JWTUtil;
 
@@ -146,10 +150,26 @@ public class AuthController {
             String token = jwtUtil.generateToken(user.getEmail());
             log.info("Registration success email={}", user.getEmail());
 
-            return ResponseEntity.ok(new LoginResponse(
-                true,
-                "Registro completo realizado com sucesso",
-                null,
+            // Monta lista de endereços com coords a partir do usuario persistido
+            java.util.List<EnderecoDTO> enderecos = new java.util.ArrayList<>();
+            if (usuario.getEnd() != null) {
+                for (Endereco e : usuario.getEnd()) {
+                    EnderecoDTO ed = new EnderecoDTO();
+                    ed.setId_endereco(e.getId_endereco());
+                    ed.setTipo_endereco(e.getTipo_endereco());
+                    ed.setLogradouro(e.getLogradouro());
+                    ed.setBairro(e.getBairro());
+                    ed.setCidade(e.getCidade());
+                    ed.setEstado(e.getEstado());
+                    ed.setCep(e.getCep());
+                    ed.setNumero(e.getNumero());
+                    ed.setLatitude(e.getLatitude());
+                    ed.setLongitude(e.getLongitude());
+                    enderecos.add(ed);
+                }
+            }
+
+            RegisterFullResponse response = new RegisterFullResponse(
                 new UserResponse(
                     user.getId_usuario(),
                     user.getEmail(),
@@ -157,8 +177,12 @@ public class AuthController {
                     token,
                     user.getLatitude(),
                     user.getLongitude()
-                )
-            ));
+                ),
+                enderecos
+            );
+
+            log.info("Registration success email={}", user.getEmail());
+            return ResponseEntity.ok(ApiResponse.success(response));
         } catch (Exception e) {
             log.warn("Registration failed email={} reason={}", usuarioDTO.getEmail(), e.getClass().getSimpleName());
             return ResponseEntity
