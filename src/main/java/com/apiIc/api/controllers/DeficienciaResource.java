@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.security.access.prepost.PreAuthorize;
 
+import com.apiIc.api.dto.ApiResponse;
 import com.apiIc.api.entities.Deficiencia;
 import com.apiIc.api.services.DeficienciaService;
 
@@ -26,35 +28,40 @@ public class DeficienciaResource {
 	private DeficienciaService service;
 	
 	@GetMapping
-	public ResponseEntity<List<Deficiencia>> findAll() {
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<List<Deficiencia>>> findAll() {
 
 		List<Deficiencia> list = service.findAll();
-		return ResponseEntity.ok().body(list);
+		return ResponseEntity.ok().body(ApiResponse.success(list));
 	}
 	
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<Deficiencia> findById(@PathVariable Long id){
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Deficiencia>> findById(@PathVariable Long id){
 	Deficiencia obj = service.findByiD(id);
-	return ResponseEntity.ok().body(obj);
+	return ResponseEntity.ok().body(ApiResponse.success(obj));
 	}
 	
 	@PostMapping
-	public ResponseEntity<Deficiencia> insert(@RequestBody Deficiencia obj){
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Deficiencia>> insert(@RequestBody Deficiencia obj){
 		obj = service.insert(obj);
 		 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId_deficiencia()).toUri();
-		 return ResponseEntity.created(uri).body(obj);
+		 return ResponseEntity.created(uri).body(ApiResponse.success(obj));
 	}
 	
 	@DeleteMapping(value = "/{id}")
-	public ResponseEntity<Void> delete(@PathVariable Long id){
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id){
 		service.delete(id);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok().body(ApiResponse.success(null));
 	}
 	
 	@PutMapping(value = "/{id}")
-	public ResponseEntity<Deficiencia> update(@PathVariable Long id, @RequestBody Deficiencia obj) {
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Deficiencia>> update(@PathVariable Long id, @RequestBody Deficiencia obj) {
 		
 		obj = service.update(id, obj);
-		return ResponseEntity.ok().body(obj);
+		return ResponseEntity.ok().body(ApiResponse.success(obj));
 	}
 }

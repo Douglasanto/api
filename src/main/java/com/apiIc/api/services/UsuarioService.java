@@ -105,6 +105,10 @@ public class UsuarioService implements UserDetailsService {
         // Criptografa a senha
         obj.setSenha(passwordEncoder.encode(objDTO.getSenha()));
         
+        // Fix: Explicitly set latitude and longitude from DTO to Entity
+        obj.setLatitude(objDTO.getLatitude());
+        obj.setLongitude(objDTO.getLongitude());
+        
         // Salva o usuário primeiro para obter o ID
         Usuario savedUsuario = repository.save(obj);
         

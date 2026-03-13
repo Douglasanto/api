@@ -22,6 +22,9 @@ public class UsuarioDTO {
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])", message = "Senha deve conter pelo menos um número e uma letra")
     private String senha;
 
+    private Double latitude;
+    private Double longitude;
+
     public String getNome() {
         return nome;
     }
@@ -52,5 +55,21 @@ public class UsuarioDTO {
 
     public void setSenha(String senha) {
         this.senha = senha;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 }

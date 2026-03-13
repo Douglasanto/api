@@ -27,6 +27,7 @@ import com.apiIc.api.services.UsuarioService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
 @RequestMapping(value = "/usuarios")
@@ -39,26 +40,28 @@ public class UsuarioResource {
     private static final Logger log = LoggerFactory.getLogger(UsuarioResource.class);
 	
 	@GetMapping
-	public ResponseEntity<List<Usuario>> findAll() {
+	@PreAuthorize("hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<List<Usuario>>> findAll() {
 
 		List<Usuario> list = service.findAll();
-		return ResponseEntity.ok().body(list);
+		return ResponseEntity.ok().body(ApiResponse.success(list));
 	}
 	
 	     @Deprecated
      @GetMapping(value = "/api/localizacoes")
-    public ResponseEntity<List<LocalizacaoDTO>> obterLocalizacoes() {
+	    public ResponseEntity<ApiResponse<List<LocalizacaoDTO>>> obterLocalizacoes() {
         log.warn("[DEPRECATED] Rota /usuarios/api/localizacoes será movida. Utilize /usuarios/localizacoes em GeolocationController.");
         List<Usuario> usuarios = service.findAll();
         List<LocalizacaoDTO> localizacoes = usuarios.stream()
                 .map(usuario -> new LocalizacaoDTO(usuario.getLatitude(), usuario.getLongitude()))
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok().body(localizacoes);
+	    	return ResponseEntity.ok().body(ApiResponse.success(localizacoes));
     }
 
 	
 	@GetMapping(value = "/{id}")
+	@PreAuthorize("#id == authentication.principal.id_usuario or hasRole('ADMIN')")
 	public ResponseEntity<ApiResponse<UserResponse>> findById(@PathVariable Long id){
         Usuario obj = service.findByiD(id);
         UserResponse r = new UserResponse(
@@ -74,24 +77,26 @@ public class UsuarioResource {
 	
 	    @Deprecated
     @PostMapping
-    public ResponseEntity<Usuario> insert(@Valid @RequestBody UsuarioDTO objDTO){
+    public ResponseEntity<ApiResponse<Usuario>> insert(@Valid @RequestBody UsuarioDTO objDTO){
          log.warn("[DEPRECATED] Endpoint POST /usuarios será descontinuado. Utilize POST /api/auth/registro.");
 		 Usuario obj = service.insert(objDTO);
 		 URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId_usuario()).toUri();
-		 return ResponseEntity.created(uri).body(obj);
+		 return ResponseEntity.created(uri).body(ApiResponse.success(obj));
 	}
 	
 	@DeleteMapping(value = "/{id}")
-	public ResponseEntity<Void> delete(@PathVariable Long id){
+	@PreAuthorize("#id == authentication.principal.id_usuario or hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id){
 		service.delete(id);
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok().body(ApiResponse.success(null));
 	}
 	
 	@PutMapping(value = "/{id}")
-	public ResponseEntity<Usuario> update(@PathVariable Long id, @RequestBody UsuarioDTO objDTO) {
+	@PreAuthorize("#id == authentication.principal.id_usuario or hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<Usuario>> update(@PathVariable Long id, @RequestBody UsuarioDTO objDTO) {
 		
 		Usuario obj = service.update(id, objDTO);
-		return ResponseEntity.ok().body(obj);
+		return ResponseEntity.ok().body(ApiResponse.success(obj));
 	}
 	
 }

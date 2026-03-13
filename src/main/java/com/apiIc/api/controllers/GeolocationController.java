@@ -3,6 +3,7 @@ package com.apiIc.api.controllers;
 import com.apiIc.api.dto.GeocodingRequestDTO;
 import com.apiIc.api.dto.LocalizacaoDTO;
 import com.apiIc.api.dto.NearbyPlaceDTO;
+import com.apiIc.api.dto.ApiResponse;
 import com.apiIc.api.services.GoogleMapsService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -24,18 +25,18 @@ public class GeolocationController {
     }
 
     @GetMapping("/locais-proximos")
-    public ResponseEntity<List<NearbyPlaceDTO>> buscarLocaisProximos(
+    public ResponseEntity<ApiResponse<List<NearbyPlaceDTO>>> buscarLocaisProximos(
             @RequestParam("latitude") double latitude,
             @RequestParam("longitude") double longitude,
             @RequestParam(value = "tipo", required = false) String tipo
     ) {
         List<NearbyPlaceDTO> locais = googleMapsService.buscarLocaisProximos(latitude, longitude, tipo);
-        return ResponseEntity.ok(locais);
+        return ResponseEntity.ok(ApiResponse.success(locais));
     }
 
     @PostMapping("/geolocalizacao")
-    public ResponseEntity<LocalizacaoDTO> geolocalizar(@Valid @RequestBody GeocodingRequestDTO request) {
+    public ResponseEntity<ApiResponse<LocalizacaoDTO>> geolocalizar(@Valid @RequestBody GeocodingRequestDTO request) {
         LocalizacaoDTO coords = googleMapsService.geocodificarEndereco(request);
-        return ResponseEntity.ok(coords);
+        return ResponseEntity.ok(ApiResponse.success(coords));
     }
 }

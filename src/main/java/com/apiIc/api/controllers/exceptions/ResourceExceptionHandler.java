@@ -1,16 +1,21 @@
 package com.apiIc.api.controllers.exceptions;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.apiIc.api.dto.ApiResponse;
 import com.apiIc.api.services.execptions.ResourceNotFoundException;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,24 +24,63 @@ import jakarta.servlet.http.HttpServletRequest;
 public class ResourceExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<StandardError> resourceNotFound(ResourceNotFoundException e, HttpServletRequest request) {
-        String error = "Resource not found";
-        HttpStatus status = HttpStatus.NOT_FOUND;
-        StandardError err = new StandardError(Instant.now(), status.value(), error, e.getMessage(), request.getRequestURI());
-        return ResponseEntity.status(status).body(err);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> resourceNotFound(ResourceNotFoundException e, HttpServletRequest request) {
+        return buildError(HttpStatus.NOT_FOUND, e.getMessage(), request);
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ValidationError> validation(MethodArgumentNotValidException e, HttpServletRequest request) {
-        String error = "Validation error";
-        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY;
-        ValidationError err = new ValidationError(Instant.now(), status.value(), error, error, request.getRequestURI());
-        
+    public ResponseEntity<ApiResponse<Map<String, Object>>> validation(MethodArgumentNotValidException e, HttpServletRequest request) {
+        Map<String, String> errors = new HashMap<>();
         for (FieldError x : e.getBindingResult().getFieldErrors()) {
-            err.addError(x.getField(), x.getDefaultMessage());
+            errors.put(x.getField(), x.getDefaultMessage());
         }
-        
-        return ResponseEntity.status(status).body(err);
+
+        ApiResponse<Map<String, Object>> r = ApiResponse.error("Validation error");
+        r.setMessage("Validation error");
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("timestamp", Instant.now().toString());
+        data.put("path", request.getRequestURI());
+        data.put("errors", errors);
+        r.setData(data);
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(r);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> dataIntegrity(DataIntegrityViolationException e, HttpServletRequest request) {
+        String msg = "Violação de integridade de dados";
+        return buildError(HttpStatus.CONFLICT, msg, request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> accessDenied(AccessDeniedException e, HttpServletRequest request) {
+        String msg = "Acesso negado";
+        return buildError(HttpStatus.FORBIDDEN, msg, request);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> authentication(AuthenticationException e, HttpServletRequest request) {
+        String msg = "Não autenticado";
+        return buildError(HttpStatus.UNAUTHORIZED, msg, request);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Map<String, Object>>> fallback(Exception e, HttpServletRequest request) {
+        String msg = "Erro interno do servidor";
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, msg, request);
+    }
+
+    private ResponseEntity<ApiResponse<Map<String, Object>>> buildError(HttpStatus status, String msg, HttpServletRequest request) {
+        ApiResponse<Map<String, Object>> r = ApiResponse.error(msg);
+        r.setMessage(msg);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("timestamp", Instant.now().toString());
+        data.put("path", request.getRequestURI());
+        r.setData(data);
+
+        return ResponseEntity.status(status).body(r);
     }
     
     public static class StandardError {

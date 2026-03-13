@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 public class AuthController {
 
     @Autowired
@@ -57,7 +57,7 @@ public class AuthController {
 
             log.info("Auth login success email={}", user.getEmail());
 
-            return ResponseEntity.ok(new LoginResponse(
+            LoginResponse resp = new LoginResponse(
                     true,
                     "Login bem-sucedido",
                     null,
@@ -69,12 +69,14 @@ public class AuthController {
                             user.getLatitude(),
                             user.getLongitude()
                     )
-            ));
+            );
+
+            return ResponseEntity.ok(ApiResponse.success(resp));
 
         } catch (AuthenticationException e) {
             log.warn("Auth login failed email={}", loginRequest.getEmail());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new LoginResponse(false, null, "Email ou senha inválidos", null));
+                    .body(ApiResponse.error("Email ou senha inválidos"));
         }
     }
     
@@ -86,7 +88,7 @@ public class AuthController {
                 log.warn("Registration attempt with existing email={}", usuarioDTO.getEmail());
                 return ResponseEntity
                     .badRequest()
-                    .body(new LoginResponse(false, null, "Email já está em uso", null));
+                    .body(ApiResponse.error("Email já está em uso"));
             }
             
             // Cria e salva o novo usuário
@@ -105,7 +107,7 @@ public class AuthController {
             String token = jwtUtil.generateToken(user.getEmail());
             log.info("Registration success email={}", user.getEmail());
             
-            return ResponseEntity.ok(new LoginResponse(
+            LoginResponse resp = new LoginResponse(
                 true,
                 "Registro realizado com sucesso",
                 null,
@@ -117,13 +119,15 @@ public class AuthController {
                     user.getLatitude(),
                     user.getLongitude()
                 )
-            ));
+            );
+
+            return ResponseEntity.ok(ApiResponse.success(resp));
             
         } catch (Exception e) {
             log.warn("Registration failed email={} reason={}", usuarioDTO.getEmail(), e.getClass().getSimpleName());
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new LoginResponse(false, null, "Erro ao registrar usuário: " + e.getMessage(), null));
+                .body(ApiResponse.error("Erro ao registrar usuário: " + e.getMessage()));
         }
     }
 
@@ -134,7 +138,7 @@ public class AuthController {
                 log.warn("Registration attempt with existing email={}", usuarioDTO.getEmail());
                 return ResponseEntity
                     .badRequest()
-                    .body(new LoginResponse(false, null, "Email já está em uso", null));
+                    .body(ApiResponse.error("Email já está em uso"));
             }
 
             Usuario usuario = usuarioService.insertFull(usuarioDTO);
@@ -187,7 +191,7 @@ public class AuthController {
             log.warn("Registration failed email={} reason={}", usuarioDTO.getEmail(), e.getClass().getSimpleName());
             return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new LoginResponse(false, null, "Erro ao registrar usuário: " + e.getMessage(), null));
+                .body(ApiResponse.error("Erro ao registrar usuário: " + e.getMessage()));
         }
     }
 }
