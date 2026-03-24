@@ -21,7 +21,10 @@ import com.apiIc.api.dto.ApiResponse;
 import com.apiIc.api.dto.LocalizacaoDTO;
 import com.apiIc.api.dto.UsuarioDTO;
 import com.apiIc.api.dto.UserResponse;
+import com.apiIc.api.dto.UserProfileResponse;
+import com.apiIc.api.dto.EnderecoDTO;
 import com.apiIc.api.entities.Usuario;
+import com.apiIc.api.entities.Endereco;
 import com.apiIc.api.services.UsuarioService;
 
 import jakarta.validation.Valid;
@@ -74,6 +77,61 @@ public class UsuarioResource {
         );
         return ResponseEntity.ok().body(ApiResponse.success(r));
     }
+
+	@GetMapping(value = "/{id}/perfil")
+	@PreAuthorize("#id == authentication.principal.id_usuario or hasRole('ADMIN')")
+	public ResponseEntity<ApiResponse<UserProfileResponse>> getPerfilCompleto(@PathVariable Long id) {
+		Usuario obj = service.findByiD(id);
+
+		String nascimento = obj.getData_nascimento() != null ? obj.getData_nascimento().toString() : null;
+		String sexo = obj.getSexo() != null ? obj.getSexo().name() : null;
+		String raca = obj.getCor() != null ? obj.getCor().name() : null;
+		String telefone = obj.getTelefone() != 0L ? String.valueOf(obj.getTelefone()) : null;
+
+		java.util.List<EnderecoDTO> enderecos = new java.util.ArrayList<>();
+		String enderecoResumo = null;
+		if (obj.getEnd() != null && !obj.getEnd().isEmpty()) {
+			for (Endereco e : obj.getEnd()) {
+				EnderecoDTO ed = new EnderecoDTO();
+				ed.setId_endereco(e.getId_endereco());
+				ed.setTipo_endereco(e.getTipo_endereco());
+				ed.setLogradouro(e.getLogradouro());
+				ed.setBairro(e.getBairro());
+				ed.setCidade(e.getCidade());
+				ed.setEstado(e.getEstado());
+				ed.setCep(e.getCep());
+				ed.setNumero(e.getNumero());
+				ed.setLatitude(e.getLatitude());
+				ed.setLongitude(e.getLongitude());
+				enderecos.add(ed);
+			}
+
+			Endereco first = obj.getEnd().iterator().next();
+			enderecoResumo = String.format("%s, %s - %s/%s", 
+				first.getLogradouro() != null ? first.getLogradouro() : "",
+				first.getNumero() != null ? first.getNumero() : "",
+				first.getCidade() != null ? first.getCidade() : "",
+				first.getEstado() != null ? first.getEstado() : ""
+			).trim();
+		}
+
+		UserProfileResponse resp = new UserProfileResponse(
+			obj.getId_usuario(),
+			obj.getEmail(),
+			obj.getNome(),
+			obj.getCpf(),
+			nascimento,
+			sexo,
+			raca,
+			telefone,
+			enderecoResumo,
+			obj.getLatitude(),
+			obj.getLongitude(),
+			enderecos
+		);
+
+		return ResponseEntity.ok().body(ApiResponse.success(resp));
+	}
 	
 	    @Deprecated
     @PostMapping
